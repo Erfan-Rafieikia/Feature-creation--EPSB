@@ -3,10 +3,11 @@ from gurobipy import GRB, quicksum
 from sub_problem import solve_subproblem
 from dual_train import train_value  # Import training function
 import numpy as np
+from config import *
 
 
 class Callback:
-    def __init__(self, dat: Data, y, eta, selected_scenarios, feature_vectors, prediction_method="regression", n_neighbors=5, use_prediction=True):
+    def __init__(self, dat, y, eta, selected_scenarios, feature_vectors, prediction_method=PREDICTION_METHOD, n_neighbors=N_NEIGHBORS, use_prediction=USE_PREDICTION):
         self.dat = dat
         self.y = y
         self.eta = eta
@@ -68,15 +69,20 @@ class Callback:
                         self.num_cuts_mip_unselected[s] += 1
                         cuts_added_unselected = True
             
-            # If use_prediction is True and no cuts were added from selected and ML, solve unselected scenarios like selected
-            if self.use_prediction and not cuts_added_selected and not cuts_added_ml:
-                for s in unselected_scenarios:
-                    obj, mu, nu = solve_subproblem(self.dat, y_values, s)
-                    if obj > eta_value[s]:
-                        self.add_optimality_cut(mod, mu, nu, s)
-                        self.num_cuts_mip_unselected[s] += 1
-                        cuts_added_unselected = True
-                        break  # Immediately return to the master problem
+
+            # Ensure this block is only executed when both conditions hold
+            if SOLVE_UNSELECTED_IF_NO_CUTS and self.use_prediction:
+            # Only run if no cuts were added in previous steps
+                if not cuts_added_selected and not cuts_added_ml:
+                    for s in unselected_scenarios:
+                        obj, mu, nu = solve_subproblem(self.dat, y_values, s)
+                        if obj > eta_value[s]:
+                            self.add_optimality_cut(mod, mu, nu, s)
+                            self.num_cuts_mip_unselected[s] += 1
+                            cuts_added_unselected = True
+                            break  # Immediately return to the master problem
+
+
 
     def predict_duals(self, unselected_scenarios):
         if self.model_mu is None or self.model_nu is None:

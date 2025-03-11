@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-
+from config import *
 from callbacks import Callback
 from data import Data
 from gurobipy import GRB, Model, quicksum
@@ -35,7 +35,7 @@ def _set_params(mod: Model):
     # mod.Params.TimeLimit = 60.0
 
 
-def solve_stochastic_cflp(selected_scenarios, feature_vectors, dat: Data, prediction_method="regression", n_neighbors=5, write_mp_lp=False, use_prediction=True) -> Solution:
+def solve_stochastic_cflp(selected_scenarios, feature_vectors, dat, prediction_method=PREDICTION_METHOD, n_neighbors=N_NEIGHBORS, use_prediction=USE_PREDICTION):
     use_prediction = use_prediction
 
     with Model("FLP_Master") as mod:
@@ -55,6 +55,7 @@ def solve_stochastic_cflp(selected_scenarios, feature_vectors, dat: Data, predic
 
         callback = Callback(dat, y, eta, selected_scenarios, feature_vectors, prediction_method=prediction_method, n_neighbors=n_neighbors, use_prediction=use_prediction)
 
+        write_mp_lp = False  # Ensure this is defined
         if write_mp_lp:
             mod.write(f"{mod.ModelName}.lp")
 

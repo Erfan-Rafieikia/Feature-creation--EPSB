@@ -3,13 +3,13 @@ import gurobipy as gp
 from gurobipy import GRB
 from scipy.spatial.distance import cdist
 
-def solve_p_median(feature_vectors, p=None):
+def solve_p_median(feature_vectors, p):
     """
     Solves the p-Median problem using Gurobi.
 
     Parameters:
         feature_vectors (dict): A dictionary where keys are scenario IDs and values are feature vectors.
-        p (int, optional): Number of sampled scenarios (medians). Defaults to len(feature_vectors) (i.e., all scenarios).
+        p (int): Number of sampled scenarios (medians).
 
     Returns:
         selected_scenarios (list): List of sampled scenario IDs (medians).
@@ -18,9 +18,11 @@ def solve_p_median(feature_vectors, p=None):
     scenario_ids = list(feature_vectors.keys())  # Scenario indices
     num_scenarios = len(scenario_ids)
 
-    # If p is not provided, set it to the maximum possible value
-    if p is None:
-        p = num_scenarios  # All scenarios can be sampled
+    # Ensure p is valid
+    if p is None or not isinstance(p, int) or p <= 0:
+        raise ValueError(f"Invalid value for p: {p}. It must be a positive integer.")
+    if p > num_scenarios:
+        raise ValueError(f"p ({p}) cannot be greater than the number of scenarios ({num_scenarios}).")
 
     # Convert feature vectors into a matrix
     feature_matrix = np.array([feature_vectors[s] for s in scenario_ids])
@@ -55,6 +57,18 @@ def solve_p_median(feature_vectors, p=None):
 
     # Solve the model
     model.optimize()
+
+    # Handle infeasibility
+    if model.status == gp.GRB.INFEASIBLE:
+        print("❌ Model is infeasible. Running infeasibility analysis...")
+        model.computeIIS()
+        model.write("infeasible_model.ilp")  # Save constraints causing infeasibility
+        return [], {}
+
+    # Handle cases where no optimal solution is found
+    if model.status != gp.GRB.OPTIMAL:
+        print(f"⚠ Warning: Model did not find an optimal solution. Status: {model.status}")
+        return [], {}
 
     # Extract selected medians
     selected_scenarios = [scenario_ids[i] for i in range(num_scenarios) if x[i].X > 0.5]

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-
+from config import *  # Import all configuration values
 import numpy as np
 
 
@@ -23,7 +23,7 @@ def word_reader(file_path):
                 yield word
 
 # Scenario generation for demand
-def generate_scenarios(demands, num_scenarios=30, variance_factor=0.2, method="normal", seed=42):
+def generate_scenarios(demands, num_scenarios=NUM_SCENARIOS, variance_factor=VARIANCE_FACTOR, method="normal", seed=SEED):
     np.random.seed(seed)  # Ensure reproducibility
     scenarios = np.array([
         [max(0, np.random.normal(mu, variance_factor * mu)) for mu in demands]
@@ -32,7 +32,7 @@ def generate_scenarios(demands, num_scenarios=30, variance_factor=0.2, method="n
     return scenarios
 
 
-def read_dataset(file_path,num_scenarios=20, variance_factor=0.2):
+def read_dataset(file_path,num_scenarios=NUM_SCENARIOS, variance_factor=0.2):
     """
     Reads a dataset for the capacitated facility location problem.
 

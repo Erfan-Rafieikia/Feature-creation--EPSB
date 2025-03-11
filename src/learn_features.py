@@ -1,6 +1,7 @@
 from gensim.models import Word2Vec
+from config import *
 
-def learn_subproblem_features(C, w):
+def learn_subproblem_features(C, w=W):
     """
     Learn subproblem features using Word2Vec.
     Parameters:

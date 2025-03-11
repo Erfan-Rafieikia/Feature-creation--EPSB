@@ -1,8 +1,9 @@
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KNeighborsRegressor
+from config import *
 
-def train_value(solved_duals, feature_vectors, method="regression", n_neighbors=5, seed=42):
+def train_value(solved_duals, feature_vectors, method=PREDICTION_METHOD, n_neighbors=N_NEIGHBORS, seed=SEED):
     """
     Train a model (Linear Regression or KNN) to predict dual variables.
 
@@ -16,7 +17,7 @@ def train_value(solved_duals, feature_vectors, method="regression", n_neighbors=
         model_mu, model_nu: Trained models for mu and nu.
     """
     np.random.seed(seed)  # Ensuring consistency
-    
+
     selected_scenarios = list(solved_duals.keys())
 
     # Prepare training data

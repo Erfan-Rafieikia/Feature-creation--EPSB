@@ -1,11 +1,12 @@
 import numpy as np
+from config import *
 
-def generate_random_walks(weight_values, n_walk, l_walk, seed=42):
+def generate_random_walks(weight_values, n_walk=N_WALK, l_walk=L_WALK, seed=SEED):
     """
     Generate random walks for each follower scenario s using probability π_st.
     """
     np.random.seed(seed)  # Ensuring reproducibility
-    
+
     C = []  # Walk container
 
     scenarios = list(set([s for s, _ in weight_values.keys()]))
